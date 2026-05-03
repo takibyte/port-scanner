@@ -6,26 +6,29 @@ A simple port scanner utilising the python socket module.
 
 import socket
 
-def scan_port(host, port):
-    with socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM) as s:
-        try:
-            s.settimeout(1)
-            result = s.connect_ex((host, port))
+def scan_port_range(host, start_port, end_port):
+    try:
+        for i in range(start_port, end_port + 1):
+            with socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM) as s:
+                s.settimeout(1)
 
-            return result == 0
-        
-        except socket.timeout:
-            print("Error: The scan has timed out.")
-            return False
-        
-        except socket.gaierror:
-            print("Error: The host couldn't resolve.")
-            return False
+                result = s.connect_ex((host, i))
+                if result == 0:
+                    print(f"Open port: {i}", end=" - ")
+                    try:
+                        print(socket.getservbyport(i))
+                    except OSError:
+                        print("Error: Service not known.")
 
-if scan_port("localhost", 22):
-    print("port open")
-else:
-    print("port closed")
-
-
+        return
     
+    except socket.timeout:
+        print("Error: The scan has timed out.")
+        return False
+    
+    except socket.gaierror:
+        print("Error: The host couldn't resolve.")
+        return False
+
+scan_port_range("localhost", 0, 100)
+
