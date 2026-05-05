@@ -8,6 +8,7 @@ import argparse
 import socket
 import threading
 from concurrent.futures import ThreadPoolExecutor
+import time
 
 parser = argparse.ArgumentParser(
     prog="portscanner",
@@ -23,30 +24,40 @@ def valid_port(value):
 
 parser.add_argument('host', type=str, nargs='?', help='hostname or IPv4 address')
 parser.add_argument('--start', type=valid_port, default=0, help='start of the port range to be scanned')
-parser.add_argument('--end', type=valid_port, default=1001, help='end of the port range to be scanned')
+parser.add_argument('--end', type=valid_port, default=1024, help='end of the port range to be scanned')
 args = parser.parse_args()
 
 
 hostname = args.host
-ports = range(args.start, args.end)
+ports = range(args.start, args.end + 1)
+
+print(f"Scanning {hostname} at ports {args.start}-{args.end + 1}")
+
+ports_open = 0
+total_scanned = 0
 
 print_lock = threading.Lock()
 
 def scan_port(host, port):
+    global ports_open, total_scanned
     try:
         with socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM) as s:
             s.settimeout(1)
 
             result = s.connect_ex((host, port))
 
+
             with print_lock:
                 if result == 0:
                     print(f"Open port: {port}", end=" - ")
+                    ports_open += 1
+                    total_scanned += 1
                     try:
                         print(socket.getservbyport(port))
                     except OSError:
                         print("Error: Service not known.")
-
+                else:
+                    total_scanned += 1
         return
     
     except socket.timeout:
@@ -57,8 +68,14 @@ def scan_port(host, port):
         print("Error: The host couldn't resolve.")
         return False
     
+start_time = time.time()
 
 with ThreadPoolExecutor(max_workers=100) as executor:
     executor.map(lambda port : scan_port(hostname, port), ports)
 
+end_time = time.time()
 
+print("-" * 50)
+print("Scan complete.")
+print(f"{ports_open} {'ports are' if ports_open > 1 else 'port is'} open. Scanned {total_scanned} ports in total.")
+print(f"Finished scan in: {round(end_time-start_time, 2)} seconds.")
