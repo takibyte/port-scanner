@@ -31,33 +31,39 @@ args = parser.parse_args()
 hostname = args.host
 ports = range(args.start, args.end + 1)
 
-print(f"Scanning {hostname} at ports {args.start}-{args.end + 1}")
+if not hostname:
+    parser.error("a host argument is required")
+ 
+try:
+    resolved_hostname = socket.gethostbyname(hostname)
+except socket.gaierror:
+    parser.error(f"could not resolve host: {hostname}")
+
+
+print(f"Scanning {hostname} ({resolved_hostname}) at ports {args.start}-{args.end}")
 
 ports_open = 0
-total_scanned = 0
+total_scanned = len(ports)
 
 print_lock = threading.Lock()
 
+# Setup socket connection with port connection check
 def scan_port(host, port):
-    global ports_open, total_scanned
+    global ports_open
     try:
         with socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM) as s:
             s.settimeout(1)
 
             result = s.connect_ex((host, port))
 
-
             with print_lock:
                 if result == 0:
-                    print(f"Open port: {port}", end=" - ")
+                    print(f"open port: {port}", end=" - ")
                     ports_open += 1
-                    total_scanned += 1
                     try:
                         print(socket.getservbyport(port))
                     except OSError:
                         print("Error: Service not known.")
-                else:
-                    total_scanned += 1
         return
     
     except socket.timeout:
@@ -70,12 +76,20 @@ def scan_port(host, port):
     
 start_time = time.time()
 
-with ThreadPoolExecutor(max_workers=100) as executor:
-    executor.map(lambda port : scan_port(hostname, port), ports)
+# Initiate multi-threaded scan
+try:
+    with ThreadPoolExecutor(max_workers=100) as executor:
+        executor.map(lambda port : scan_port(hostname, port), ports)
 
-end_time = time.time()
+except KeyboardInterrupt:
+    print("\nScan cancelled by the user.")
 
-print("-" * 50)
-print("Scan complete.")
-print(f"{ports_open} {'ports are' if ports_open > 1 else 'port is'} open. Scanned {total_scanned} ports in total.")
-print(f"Finished scan in: {round(end_time-start_time, 2)} seconds.")
+finally:
+    end_time = time.time()
+
+    print("-" * 46)
+    print("Scan complete.")
+    print(f"{ports_open} {'ports are' if ports_open > 1 else 'port is'} open. Scanned {total_scanned} ports in total.")
+    print(f"Finished scan in: {round(end_time-start_time, 2)} seconds.")
+
+
