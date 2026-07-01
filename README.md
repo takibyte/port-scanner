@@ -8,9 +8,13 @@ positional arguments:
   host           hostname or IPv4 address
 
 options:
-  -h, --help     show help message and exit
-  --start START  start of the port range to be scanned
-  --end END      end of the port range to be scanned
+
+-h, --help     show help message and exit
+
+--start START  start of the port range to be scanned
+
+--end END      end of the port range to be scanned
+
 
 example usage:
   python3 portscanner.py --start 0 --end 1000 example.com
