@@ -2,6 +2,7 @@
 
 This is a simple port scanner written in Python. It allows you to scan a range of ports on a specified host to check which ports are open.
 
+```
 usage: portscanner [-h] [--start START] [--end END] [host]
 
 positional arguments:
@@ -18,3 +19,4 @@ options:
 
 example usage:
   python3 portscanner.py --start 0 --end 1000 example.com
+```
