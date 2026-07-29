@@ -1,6 +1,6 @@
-# Port Scanner
+# port-scanner
 
-This is a simple port scanner written in Python. It allows you to scan a range of ports on a specified host to check which ports are open.
+This is a simple multi-threaded port scanner written in Python. It allows you to scan a range of ports on a specified host to check which ports are open.
 
 ```
 usage: portscanner [-h] [--start START] [--end END] [host]
