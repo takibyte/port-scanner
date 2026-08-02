@@ -11,7 +11,7 @@ from concurrent.futures import ThreadPoolExecutor
 import time
 
 parser = argparse.ArgumentParser(
-    prog="portscanner",
+    prog="pscan",
     description="A simple port scanner")
 
 
@@ -23,7 +23,7 @@ def valid_port(value):
 
 
 parser.add_argument('host', type=str, nargs='?', help='hostname or IPv4 address')
-parser.add_argument('--start', type=valid_port, default=0, help='start of the port range to be scanned')
+parser.add_argument('--start', type=valid_port, default=1, help='start of the port range to be scanned')
 parser.add_argument('--end', type=valid_port, default=1024, help='end of the port range to be scanned')
 args = parser.parse_args()
 
